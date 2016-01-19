@@ -49,7 +49,9 @@ int main(int argc, char **argv)
 	
 	/* main procedure */
 	while(1) {
-
+		if ((connfd = accept(listenfd, (struct sockaddr *)&claddr,
+					sizeof(claddr))) < 0)
+			error_msg("error on accept()");
 
 	}
 
