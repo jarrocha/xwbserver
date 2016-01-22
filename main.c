@@ -17,8 +17,6 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,17 +26,16 @@
 #include <sys/types.h>
 #include "utils.h"
 
-const int LISTENQ = 5;
-static int DATLEN = 8192;
-
 int main(int argc, char **argv)
 {
+	/* server socket variables */
 	int listenfd, connfd, port;
 	int optval = 1;
 	socklen_t sin_size;
 	struct sockaddr_in svaddr, claddr;
 
 	/* variables to handle http process */
+	struct web_fl webfile;
 	char buff[DATLEN], method[DATLEN], uri[DATLEN], ver[DATLEN];
 	int cn = 0;
 	
@@ -47,9 +44,15 @@ int main(int argc, char **argv)
 	memset(&claddr, 0, sizeof(claddr));
 
 	/* handling webserver arguments */
-	if (argc != 2)
+	if (argc != 3)
 		usage(argv[0]);
 	port = atoi(argv[1]);
+
+	/* initialize web file struct */
+	//webfile.file_name = &argv[2];
+	strcpy(webfile.file_name, argv[2]);
+	webfile.stat_ct = 0;
+	webfile.dyn_ct = 0;
 	
 	/* initializing server address socket */
 	svaddr.sin_family = AF_INET;
@@ -66,7 +69,7 @@ int main(int argc, char **argv)
 	/* bind socket to IP address */
 	if (bind(listenfd,(struct sockaddr *) &svaddr, 
 				sizeof(struct sockaddr_in)) < 0)
-			error_msg("error on bind()");
+		error_msg("error on bind()");
 
 	/* listen on socket */
 	if ((listen(listenfd, LISTENQ)) < 0)
@@ -82,7 +85,6 @@ int main(int argc, char **argv)
 				inet_ntoa(claddr.sin_addr),
 				ntohs(claddr.sin_port));
 		
-		
 		/* Read request line and headers */
 		cn = recv(connfd, buff, DATLEN, 0);
 		while (cn  > 0) {
@@ -94,8 +96,19 @@ int main(int argc, char **argv)
 				errno = ENOSYS;
 				error_msg("501");
 			}
+			memset(&buff, 0, DATLEN);
 			cn = recv(connfd, buff, DATLEN, 0);
 		}
+
+		/* get content type */
+		if(get_ct_type(&webfile, uri) != 0)
+			error_msg("error getting content type");
+		
+		/* get file stats */
+		get_file_stats(&webfile);
+
+		/* serve static content */
+		serve_static(connfd, &webfile);
 	}
 
 

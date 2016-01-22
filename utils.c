@@ -22,6 +22,10 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include "utils.h"
 
 /* prints error messages */
 void error_msg(const char *msg)
@@ -40,9 +44,58 @@ int matches(const char* cmd, const char* pattern)
 	return memcmp(pattern, cmd, len);
 }
 
+/* get content type: dynamic or static */
+int get_ct_type(struct web_fl *webfile, char *uri)
+{
+	if(!strstr(uri, "cgi-bin")) {
+		if (uri[strlen(uri) - 1] == '/') {
+			webfile->stat_ct = 1;			
+			webfile->dyn_ct = 0;
+			return(EXIT_SUCCESS);			
+		}
+	} else {
+		webfile->stat_ct = 0;			
+		webfile->dyn_ct = 1;
+		return(EXIT_SUCCESS);			
+	}
+
+
+	return(EXIT_FAILURE);
+}
+
+/* get file stats */
+void get_file_stats(struct web_fl *webfile)
+{
+	if (strstr(webfile->file_name, ".html"))
+		strcpy(webfile->file_type, "text/html");
+	else if (strstr(webfile->file_name, ".gif"))
+		strcpy(webfile->file_type, "image/gif");
+	else if (strstr(webfile->file_name, ".jpg"))
+		strcpy(webfile->file_type, "image/jpeg");
+	else
+		strcpy(webfile->file_type, "text/plain");
+}
+
+/* serve static content */
+void serve_static(int connfd, struct web_fl *webfile)
+{
+	int filefd;
+	char *addr;
+	char buff[DATLEN];
+	
+	sprintf(buff, "HTTP/1.0 200 OK\r\n");
+	sprintf(buff, "%sServer: Tiny Web Server\r\n", buff);
+	sprintf(buff, "%sContent-length: %d\r\n", buff, webfile->file_size);
+	sprintf(buff, "%sContent-type: %s\r\n\r\n", buff, webfile->file_type);
+
+	if ((filefd = open(webfile->file_name, O_RDONLY, 0)) < 0)
+		error_msg("error opening web file");
+
+}
+
 /* usage function */
 void usage(char *argv)
 {
-	printf("Usage: %s [PORT]\n", argv);
+	printf("Usage: %s [PORT] [INDEX PAGE]\n", argv);
 	exit(EXIT_SUCCESS);
 }
