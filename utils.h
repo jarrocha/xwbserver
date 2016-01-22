@@ -2,8 +2,8 @@
  * Implementation of common functions
  */
 
-#ifndef _COMMON_H_
-#define _COMMON_H_
+#ifndef _UTILS_H_
+#define _UTILS_H_
 
 #define LISTENQ 5
 #define DATLEN 8192
