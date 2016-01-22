@@ -97,6 +97,7 @@ void serve_static(int connfd, struct web_fl *webfile)
 
 	/* send content */
 	nleft = strlen(buff);
+	printf("nleft: %d\n",(int) nleft);
 	nsend = 0;
 	while (nleft > 0) {
 		if ((nsend = send(connfd, buff, DATLEN, 0)) <= 0 ) {

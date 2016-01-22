@@ -51,8 +51,8 @@ int main(int argc, char **argv)
 	/* initialize web file struct */
 	//webfile.file_name = &argv[2];
 	//strcpy(webfile.file_name, argv[2]);
-	webfile.stat_ct = 0;
-	webfile.dyn_ct = 0;
+	//webfile.stat_ct = 0;
+	//webfile.dyn_ct = 0;
 	
 	/* initializing server address socket */
 	svaddr.sin_family = AF_INET;
@@ -101,14 +101,14 @@ int main(int argc, char **argv)
 		}
 
 		/* get content type */
-		if(get_ct_type(&webfile, uri) != 0)
-			error_msg("error getting content type");
+		//if(get_ct_type(&webfile, uri) != 0)
+		//	error_msg("error getting content type");
 		
 		/* get file stats */
-		get_file_stats(&webfile);
+		//get_file_stats(&webfile);
 
 		/* serve static content */
-		serve_static(connfd, &webfile);
+		//serve_static(connfd, &webfile);
 	}
 
 
