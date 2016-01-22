@@ -44,13 +44,13 @@ int main(int argc, char **argv)
 	memset(&claddr, 0, sizeof(claddr));
 
 	/* handling webserver arguments */
-	if (argc != 3)
-		usage(argv[0]);
+	//if (argc != 3)
+	//	usage(argv[0]);
 	port = atoi(argv[1]);
 
 	/* initialize web file struct */
 	//webfile.file_name = &argv[2];
-	strcpy(webfile.file_name, argv[2]);
+	//strcpy(webfile.file_name, argv[2]);
 	webfile.stat_ct = 0;
 	webfile.dyn_ct = 0;
 	
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 		while (cn  > 0) {
 			sscanf(buff, "%s %s %s", method, uri, ver);
 			
-			printf("method: %s\nuri: %s\nver: %s\n", method, uri,
+			printf("method: %s\nuri: %s\nver: %s\n\n", method, uri,
 					ver);
 			if (matches("GET", method) != 0) {
 				errno = ENOSYS;
