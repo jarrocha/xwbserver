@@ -22,9 +22,11 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include "utils.h"
 
 /* prints error messages */
@@ -90,6 +92,13 @@ void serve_static(int connfd, struct web_fl *webfile)
 
 	if ((filefd = open(webfile->file_name, O_RDONLY, 0)) < 0)
 		error_msg("error opening web file");
+	
+	if ((addr = mmap(0, webfile->file_size, PROT_READ, MAP_PRIVATE, 
+					filefd, 0)) == ((void *) -1))
+		error_msg("error on mmap()");
+	
+	if (close(filefd) < 0)
+		error_msg("error closing filefd");
 
 }
 
