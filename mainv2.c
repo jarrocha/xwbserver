@@ -24,7 +24,9 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
-#include "utils.h"
+
+#define DATLEN 8192
+#define LISTENQ 5
 
 int main(int argc, char **argv)
 {
@@ -35,7 +37,6 @@ int main(int argc, char **argv)
 	socklen_t sin_size = sizeof(claddr);
 
 	/* variables to handle http process */
-	struct web_fl webfile;
 	char buff[DATLEN], method[DATLEN], uri[DATLEN], ver[DATLEN];
 	int cn = 0;
 	
@@ -44,15 +45,10 @@ int main(int argc, char **argv)
 	memset(&claddr, 0, sizeof(claddr));
 
 	/* handling webserver arguments */
-	if (argc != 3)
-		usage(argv[0]);
+	if (argc != 2)
+		printf("arg error\n");
 	port = atoi(argv[1]);
 
-	/* initialize web file struct */
-	strcpy(webfile.file_name, argv[2]);
-	webfile.stat_ct = 0;
-	webfile.dyn_ct = 0;
-	
 	/* initializing server address socket */
 	svaddr.sin_family = AF_INET;
 	svaddr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -60,25 +56,25 @@ int main(int argc, char **argv)
 	
 	/* defining listening socket descriptor */
 	if ((listenfd = socket(svaddr.sin_family, SOCK_STREAM, 0)) < 0 )
-		error_msg("error on socket()");
+		printf("error on socket()");
 	if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &optval, 
 				sizeof(optval)) < 0)
-		error_msg("error on setsockopt()");
+		printf("error on setsockopt()");
 	
 	/* bind socket to IP address */
 	if (bind(listenfd,(struct sockaddr *) &svaddr, 
 				sizeof(struct sockaddr_in)) < 0)
-		error_msg("error on bind()");
+		printf("error on bind()");
 
 	/* listen on socket */
 	if ((listen(listenfd, LISTENQ)) < 0)
-		error_msg("error on listen()");
+		printf("error on listen()");
 	
 	/* main procedure */
 	while(1) {
 		if ((connfd = accept(listenfd, (struct sockaddr *) &claddr,
-					&sin_size)) < 0)
-			error_msg("error on accept()");
+				&sin_size)) < 0)
+			printf("error on accept()");
 
 		printf("server: got connection from %s port %d\n",
 				inet_ntoa(claddr.sin_addr),
@@ -91,23 +87,14 @@ int main(int argc, char **argv)
 			
 			printf("method: %s\nuri: %s\nver: %s\n\n", method, uri,
 					ver);
-			if (matches("GET", method) != 0) {
+			if (strcmp("GET", method) != 0) {
 				errno = ENOSYS;
-				error_msg("501");
+				printf("501");
 			}
 			memset(&buff, 0, DATLEN);
 			cn = recv(connfd, buff, DATLEN, 0);
 		}
 
-		/* get content type */
-		//if(get_ct_type(&webfile, uri) != 0)
-		//	error_msg("error getting content type");
-		
-		/* get file stats */
-		//get_file_stats(&webfile);
-
-		/* serve static content */
-		//serve_static(connfd, &webfile);
 	}
 
 

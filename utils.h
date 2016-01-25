@@ -1,4 +1,5 @@
 /*
+:q
  * Implementation of common functions
  */
 
