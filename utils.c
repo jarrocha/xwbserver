@@ -37,6 +37,52 @@ void error_msg(const char *msg)
 	exit(EXIT_FAILURE);
 }
 
+/* receive msg function */
+int recv_msg(int fd, char *buff)
+{
+	//char eol = EOL;
+	ssize_t nrecv = 0;
+
+	while (nrecv <= 0) {
+		nrecv = recv(fd, buff, DATLEN, 0);
+
+		if (nrecv < 0) {
+			if (errno != EINTR)
+				error_msg("recv() error");
+		} else if (nrecv == 0)
+			return 1;
+		else
+			nrecv = 0;
+	}
+
+	return 1;
+}
+
+/* send msg function */
+void send_msg(int fd, char *buff)
+{
+	size_t nleft = strlen(buff);
+	ssize_t nsend = 0;
+
+	/* send content */
+	while (nleft > 0) {
+		if ((nsend = send(fd, buff, nleft, 0)) <= 0 ) {
+			if ( nsend < 0 && errno == EINTR)
+				nsend = 0;
+			else
+				error_msg("error with send()");
+		}
+		nleft -= nsend;
+		buff += nsend;
+	}
+}
+
+/* print http error messages */
+void error_http(int fd, struct web_fl *webfile, char *err_cd, char *msg)
+{
+	
+}
+
 /* compares two strings */
 int matches(const char* cmd, const char* pattern)
 {
@@ -62,13 +108,20 @@ int get_ct_type(struct web_fl *webfile, char *uri)
 		return(EXIT_SUCCESS);			
 	}
 
-
 	return(EXIT_FAILURE);
 }
 
 /* get file stats */
 void get_file_stats(struct web_fl *webfile)
 {
+	struct stat filestat;
+
+	if (stat(webfile->file_name, &filestat) < 0) {
+		printf("File: %s\n", webfile->file_name);
+		error_msg("error on stat()");
+	} else
+		webfile->file_size = filestat.st_size;
+
 	if (strstr(webfile->file_name, ".html"))
 		strcpy(webfile->file_type, "text/html");
 	else if (strstr(webfile->file_name, ".gif"))
@@ -85,63 +138,31 @@ void serve_static(int connfd, struct web_fl *webfile)
 	int filefd;
 	char *addr;
 	char buff[DATLEN];
-	struct stat filestat;
 	/* send() variables */
 	size_t nleft;
 	ssize_t nsend;
 
 	sprintf(buff, "HTTP/1.0 200 OK\r\n");
-	sprintf(buff, "%sServer: Tiny Web Server\r\n", buff);
+	sprintf(buff, "%sServer: xWeb Server\r\n", buff);
 	sprintf(buff, "%sContent-length: %d\r\n", buff, webfile->file_size);
 	sprintf(buff, "%sContent-type: %s\r\n\r\n", buff, webfile->file_type);
-
-	/* send content */
-	nleft = strlen(buff);
-	printf("nleft: %d\n",(int) nleft);
-	nsend = 0;
-	while (nleft > 0) {
-		if ((nsend = send(connfd, buff, DATLEN, 0)) <= 0 ) {
-			if (errno == EINTR)
-				nsend = 0;
-			else
-				error_msg("error with send()");
-
-		}
-		nleft -= nsend;
-	}
 	
-	/*	
-	if (stat(webfile->file_name, &filestat) < 0) {
-		printf("File: %s\n", webfile->file_name);
-		error_msg("error on stat()");
-	} else
-		webfile->file_size = filestat.st_size;
-
+	send_msg(connfd, buff);
+	
 	if ((filefd = open(webfile->file_name, O_RDONLY, 0)) < 0)
 		error_msg("error opening web file");
-
-
-	if ((addr = mmap(0, webfile->file_size, PROT_READ, MAP_PRIVATE, 
-					filefd, 0)) == ((void *) -1))
-		error_msg("error on mmap()");
+	read(filefd, buff, webfile->file_size);
+	send_msg(connfd, buff);
+	
+	//if ((addr = mmap(0, webfile->file_size, PROT_READ, MAP_PRIVATE, 
+	//				filefd, 0)) == ((void *) -1))
+	//	error_msg("error on mmap()");
 	
 	// close file desciptor 
-	if (close(filefd) < 0)
-		error_msg("error closing filefd");
+	//if (close(filefd) < 0)
+	//	error_msg("error closing filefd");
 	
-	// send content 
-	nleft = webfile->file_size;
-	while (nleft > 0) {
-		if ((nsend = send(connfd, addr, webfile->file_size, 0)) <= 0 ) {
-			if (errno == EINTR)
-				nsend = 0;
-			else
-				error_msg("error with send()");
-
-		}
-		nleft -= nsend;
-	}
-*/
+	close(filefd);
 }
 
 /* usage function */

@@ -9,6 +9,7 @@
 #define LISTENQ 5
 #define DATLEN 8192
 #define FILEDAT 256
+#define EOL "\r\n"
 
 struct web_fl {
 	int file_size;
@@ -16,8 +17,14 @@ struct web_fl {
 	int dyn_ct;
 	char file_type[FILEDAT];
 	char file_name[FILEDAT];
+	char method[FILEDAT];
+	char uri[FILEDAT];
+	char ver[FILEDAT];	
 };
 
+int recv_msg(int, char *);
+void send_msg(int, char *);
+void error_http(int, struct web_fl *, char *, char *);
 void error_msg(const char *);
 int get_ct_type(struct web_fl *, char *);
 void get_file_stats(struct web_fl *);
