@@ -18,12 +18,13 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include "utils.h"
 #include "http.h"
 
-void http_404(int, struct web_fl *);
-void http_200(int, struct web_fl *);
+//void http_404(int, struct web_fl *);
+//void http_200(int, struct web_fl *);
 
 struct http_codes {
 	char *code;
@@ -61,10 +62,23 @@ void http_404(int fd, struct web_fl *webfile)
 	char buff[DATLEN];
 
 	sprintf(buff, "HTTP/1.0 404 NOT FOUND\r\n");
-	sprintf(buff, "%sServer: xWebserver\r\n", buff);
+	sprintf(buff, "%sServer: xWebserver\r\n\r\n", buff);
 	sprintf(buff, "%s<html><head><title>404 Not Found</title></head>"
 		,buff);
 	sprintf(buff, "%s<body><h1>URL not found</h1></body></html>\r\n", buff);
     
 	send_msg(fd, buff);
+}
+
+int test_method(struct wb_req *request)
+{
+	char *method[] = { "GET" };
+
+	for (int i = 0; i < sizeof(method) / sizeof(method[0]); i++) {
+		printf("Test against: %s\n", method[i]);
+		printf("Request: %s\n", request->method);
+		if (matches(request->method, method[i]) == 0)
+			return 0;
+	}
+	return -1;
 }

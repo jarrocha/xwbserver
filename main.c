@@ -24,7 +24,9 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
+
 #include "utils.h"
+#include "http.h"
 
 int main(int argc, char **argv)
 {
@@ -35,6 +37,7 @@ int main(int argc, char **argv)
 	socklen_t sin_size = sizeof(claddr);
 
 	/* variables to handle http process */
+	char buff[DATLEN];
 	struct web_fl webfile;
 	struct wb_req request;
 	
@@ -86,12 +89,15 @@ int main(int argc, char **argv)
 		/* Read request line and headers */
 		recv_msg(connfd, buff, DATLEN);
 
-		sscanf(buff, "%s %s %s", method, uri, ver);
-		printf("method: %s\nuri: %s\nver: %s\n\n", method, uri, ver);
-		if (matches("GET", method) != 0) {
-			errno = ENOSYS;
-			error_msg("501");
-		}
+		sscanf(buff, "%s %s %s", request.method, request.uri,
+			request.ver);
+		printf("method: %s\nuri: %s\nver: %s\n\n", request.method, 
+			request.uri, request.ver);
+		
+		if (test_method(&request) < 0)
+		       printf("NO MATCH!!\n");
+		else
+			printf("MATCH!!\n");	
 		
 		/* get content type */
 		//if(get_ct_type(&webfile, uri) != 0)

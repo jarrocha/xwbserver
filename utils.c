@@ -162,7 +162,7 @@ void serve_static(int connfd, struct web_fl *webfile)
 	get_file_stats(webfile);
 		
 	if ((addr = mmap(0, webfile->file_size, PROT_READ, MAP_PRIVATE, 
-					filefd, 0)) == ((void *) -1))
+				filefd, 0)) == ((void *) -1))
 		error_msg("error on mmap()");
 	
 	if (close(filefd) < 0)

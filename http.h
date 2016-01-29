@@ -21,4 +21,5 @@
 
 void call_http(char *, int, struct web_fl *);
 void http_200(int, struct web_fl *);
-
+void http_404(int, struct web_fl *);
+int test_method(struct wb_req *);
