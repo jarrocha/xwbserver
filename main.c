@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 
 	/* variables to handle http process */
 	struct web_fl webfile;
-	char buff[DATLEN], method[DATLEN], uri[DATLEN], ver[DATLEN];
+	struct wb_req request;
 	
 	/* zeroing structs */
 	memset(&svaddr, 0, sizeof(svaddr));
@@ -94,18 +94,12 @@ int main(int argc, char **argv)
 		}
 		
 		/* get content type */
-		if(get_ct_type(&webfile, uri) != 0)
-			error_msg("error getting content type");
-
-		/* get file stats */
-		get_file_stats(&webfile);
+		//if(get_ct_type(&webfile, uri) != 0)
+		//	error_msg("error getting content type");
 
 		/* serve static content */
 		serve_static(connfd, &webfile);
 	}
 
-
-
 	return(EXIT_SUCCESS);
-
 }

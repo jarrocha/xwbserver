@@ -1,5 +1,5 @@
 /*
- *  utils.c: implements common functions fo xwbserver.
+ *  utils.c: implements common functions for xwbserver.
  *
  *  Copyright (C) 2016 Jaime Arrocha
  *
@@ -17,7 +17,6 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
@@ -28,7 +27,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+
 #include "utils.h"
+#include "http.h"
 
 /* prints error messages */
 void error_msg(const char *msg)
@@ -74,12 +75,13 @@ ssize_t recv_msg(int fd, char *usr_buff, size_t nbytes)
 }
 
 /* send msg function */
-void send_msg(int fd, char *buff)
+size_t send_msg(int fd, char *buff)
 {
 	size_t nleft = strlen(buff);
 	ssize_t nsend = 0;
 
 	/* send content */
+	printf("Bytes to send: %d\n", (int) nleft);
 	while (nleft > 0) {
 		if ((nsend = send(fd, buff, nleft, 0)) <= 0 ) {
 			if ( nsend < 0 && errno == EINTR)
@@ -90,12 +92,9 @@ void send_msg(int fd, char *buff)
 		nleft -= nsend;
 		buff += nsend;
 	}
-}
-
-/* print http error messages */
-void error_http(int fd, struct web_fl *webfile, char *err_cd, char *msg)
-{
-	
+	if (nleft == 0)
+		printf("Send success!!\n");
+	return nleft;
 }
 
 /* compares two strings */
@@ -151,19 +150,17 @@ void get_file_stats(struct web_fl *webfile)
 void serve_static(int connfd, struct web_fl *webfile)
 {
 	int filefd;
+	int counter;
 	char *addr;
 	char buff[DATLEN];
 
-	sprintf(buff, "HTTP/1.0 200 OK\r\n");
-	sprintf(buff, "%sServer: xWeb Server\r\n", buff);
-	sprintf(buff, "%sContent-length: %d\r\n", buff, webfile->file_size);
-	sprintf(buff, "%sContent-type: %s\r\n\r\n", buff, webfile->file_type);
-	
-	send_msg(connfd, buff);
+	call_http("200", connfd, webfile);
 	
 	if ((filefd = open(webfile->file_name, O_RDONLY, 0)) < 0)
-		error_msg("error opening web file");
-	
+		call_http("404", connfd, webfile);
+	/* get file stats */
+	get_file_stats(webfile);
+		
 	if ((addr = mmap(0, webfile->file_size, PROT_READ, MAP_PRIVATE, 
 					filefd, 0)) == ((void *) -1))
 		error_msg("error on mmap()");

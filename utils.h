@@ -32,13 +32,17 @@ struct web_fl {
 	int dyn_ct;
 	char file_type[FILEDAT];
 	char file_name[FILEDAT];
-	char method[FILEDAT];
-	char uri[FILEDAT];
-	char ver[FILEDAT];	
 };
 
+struct wb_req {
+	char method[FILEDAT];
+	char uri[FILEDAT];
+	char ver[FILEDAT];
+};
+
+
 ssize_t recv_msg(int, char *, size_t);
-void send_msg(int, char *);
+size_t send_msg(int, char *);
 void error_http(int, struct web_fl *, char *, char *);
 void error_msg(const char *);
 int get_ct_type(struct web_fl *, char *);
