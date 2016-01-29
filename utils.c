@@ -38,24 +38,39 @@ void error_msg(const char *msg)
 }
 
 /* receive msg function */
-int recv_msg(int fd, char *buff)
+ssize_t recv_msg(int fd, char *usr_buff, size_t nbytes)
 {
-	//char eol = EOL;
-	ssize_t nrecv = 0;
+	size_t nleft = nbytes;
+	ssize_t nrecv;
+	char *recv_buff = usr_buff;
+	/*
+	char EOL[3] = "\r\n";
+	size_t eol_len = strlen(EOL);
+	int eol_matched;
+	*/
 
-	while (nrecv <= 0) {
-		nrecv = recv(fd, buff, DATLEN, 0);
-
-		if (nrecv < 0) {
-			if (errno != EINTR)
+	while (nleft > 0) {
+		if ((nrecv = recv(fd, recv_buff, nleft, 0)) < 0) {
+			if (errno == EINTR)
+				nrecv = 0;
+			else
 				error_msg("recv() error");
-		} else if (nrecv == 0)
-			return 1;
-		else
-			nrecv = 0;
+		} else if ((nrecv == 0 ) || strstr(recv_buff, "\r\n"))
+			break;
+		/* search for EOL at the last two bytes 
+		for (int i = nrecv - 2; i <= nrecv; i++) {
+			if ( *(recv_buff + i) == EOL[eol_matched])
+				eol_matched++;
+			if (eol_matched == eol_len)
+				*(recv_buff + 1 - eol_len) = '\0';
+		}
+		*/
+		nleft -= nrecv;
+		recv_buff += nrecv;
 	}
 
-	return 1;
+	return nbytes - nleft;
+	
 }
 
 /* send msg function */
@@ -138,9 +153,6 @@ void serve_static(int connfd, struct web_fl *webfile)
 	int filefd;
 	char *addr;
 	char buff[DATLEN];
-	/* send() variables */
-	size_t nleft;
-	ssize_t nsend;
 
 	sprintf(buff, "HTTP/1.0 200 OK\r\n");
 	sprintf(buff, "%sServer: xWeb Server\r\n", buff);
@@ -151,18 +163,18 @@ void serve_static(int connfd, struct web_fl *webfile)
 	
 	if ((filefd = open(webfile->file_name, O_RDONLY, 0)) < 0)
 		error_msg("error opening web file");
-	read(filefd, buff, webfile->file_size);
-	send_msg(connfd, buff);
 	
-	//if ((addr = mmap(0, webfile->file_size, PROT_READ, MAP_PRIVATE, 
-	//				filefd, 0)) == ((void *) -1))
-	//	error_msg("error on mmap()");
+	if ((addr = mmap(0, webfile->file_size, PROT_READ, MAP_PRIVATE, 
+					filefd, 0)) == ((void *) -1))
+		error_msg("error on mmap()");
 	
-	// close file desciptor 
-	//if (close(filefd) < 0)
-	//	error_msg("error closing filefd");
+	if (close(filefd) < 0)
+		error_msg("error closing filefd");
 	
-	close(filefd);
+	send_msg(connfd, addr);
+
+	if (munmap(addr, webfile->file_size) < 0)
+		error_msg("munmap() error");
 }
 
 /* usage function */

@@ -37,7 +37,6 @@ int main(int argc, char **argv)
 	/* variables to handle http process */
 	struct web_fl webfile;
 	char buff[DATLEN], method[DATLEN], uri[DATLEN], ver[DATLEN];
-	int cn = 0;
 	
 	/* zeroing structs */
 	memset(&svaddr, 0, sizeof(svaddr));
@@ -85,29 +84,19 @@ int main(int argc, char **argv)
 				ntohs(claddr.sin_port));
 		
 		/* Read request line and headers */
-		/*
-		if ((recv_msg(connfd, buff)) <= 0)
-			error_msg("recv() error");
-		*/
-		cn = recv(connfd, buff, DATLEN, 0);
-		while (cn  > 0) {
-			
-			sscanf(buff, "%s %s %s", method, uri, ver);
-			printf("method: %s\nuri: %s\nver: %s\n\n", method, uri,
-					ver);
-			if (matches("GET", method) != 0) {
-				errno = ENOSYS;
-				error_msg("501");
-			}
-			//memset(&buff, 0, DATLEN);
-			cn = 0;
-			//cn = recv(connfd, buff, DATLEN, 0);
-		}
+		recv_msg(connfd, buff, DATLEN);
 
+		sscanf(buff, "%s %s %s", method, uri, ver);
+		printf("method: %s\nuri: %s\nver: %s\n\n", method, uri, ver);
+		if (matches("GET", method) != 0) {
+			errno = ENOSYS;
+			error_msg("501");
+		}
+		
 		/* get content type */
 		if(get_ct_type(&webfile, uri) != 0)
 			error_msg("error getting content type");
-		
+
 		/* get file stats */
 		get_file_stats(&webfile);
 

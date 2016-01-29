@@ -4,6 +4,6 @@ GCC = gcc
 CFLAGS = -Wall -g -std=c99
 
 all:
-	$(GCC) $(CFLAGS) -o main.o main.c utils.c
+	$(GCC) $(CFLAGS) -o xwbserver main.c utils.c
 clean:
-	rm -rf *.o
+	rm -rf xwbserver
