@@ -1,7 +1,7 @@
 # xwbserver
 -------------------
 
-A Linux web server implementation. I plan on using this as a refenrecen for a
+A Linux web server implementation. I plan on using this as a reference for a
 couple of tutorials on implementing the HTTP protocol on actual code.
 
 Future Features:
