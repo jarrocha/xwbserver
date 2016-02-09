@@ -2,8 +2,12 @@
 
 GCC = gcc
 CFLAGS = -Wall -g -std=c99
+LIBS= -pthread
+IN= main.c utils.c http.c
+OUT= wbserver.o
+
 
 all:
-	$(GCC) $(CFLAGS) -o xwbserver.o main.c utils.c http.c
+	$(GCC) $(CFLAGS) -o $(OUT) $(IN) $(LIBS)
 clean:
-	rm -rf xwbserver
+	rm -rf $(OUT)
