@@ -24,22 +24,33 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
+#include <pthread.h>
 
 #include "utils.h"
 #include "http.h"
 
+/* global */
+struct web_fl *wb_ptr;
+
+/* pthread functions */
+void *thr_func(void *arg);
+
 int main(int argc, char **argv)
 {
 	/* server socket variables */
-	int listenfd, connfd, port;
+	int listenfd, port;
 	int optval = 1;
 	struct sockaddr_in svaddr, claddr;
 	socklen_t sin_size = sizeof(claddr);
 
+	/* pthread variables */
+	pthread_t tid;
+
 	/* variables to handle http process */
 	char buff[DATLEN];
 	struct web_fl webfile;
-	struct wb_req request;
+	struct wb_req req;
+	wb_ptr = &webfile;
 	
 	/* zeroing structs */
 	memset(&svaddr, 0, sizeof(svaddr));
@@ -78,7 +89,7 @@ int main(int argc, char **argv)
 	
 	/* main procedure */
 	while(1) {
-		if ((connfd = accept(listenfd, (struct sockaddr *) &claddr,
+		if ((req.trx_fd = accept(listenfd, (struct sockaddr *) &claddr,
 					&sin_size)) < 0)
 			error_msg("error on accept()");
 
@@ -87,25 +98,32 @@ int main(int argc, char **argv)
 				ntohs(claddr.sin_port));
 		
 		/* Read request line and headers */
-		recv_msg(connfd, buff, DATLEN);
+		recv_msg(req.trx_fd, buff, DATLEN);
 
-		sscanf(buff, "%s %s %s", request.method, request.uri,
-			request.ver);
-		printf("method: %s\nuri: %s\nver: %s\n\n", request.method, 
-			request.uri, request.ver);
+		sscanf(buff, "%s %s %s", req.method, req.uri, req.ver);
+		printf("method: %s\nuri: %s\nver: %s\n\n", req.method, req.uri,
+			req.ver);
 		
-		if (test_method(&request) < 0)
-		       printf("NO MATCH!!\n");
-		else
-			printf("MATCH!!\n");	
+		if (pthread_create(&tid, NULL, thr_func, &req) != 0)
+			error_msg("Thread create error");
+		if (pthread_detach(tid) != 0)
+			error_msg("Thread detach error");
 		
-		/* get content type */
-		//if(get_ct_type(&webfile, uri) != 0)
-		//	error_msg("error getting content type");
-
-		/* serve static content */
-		serve_static(connfd, &webfile);
 	}
 
 	return(EXIT_SUCCESS);
+}
+
+
+void *thr_func(void *arg)
+{
+	
+	struct wb_req *req;
+
+	req = malloc(sizeof(struct wb_req));
+	memcpy(req, arg, sizeof(struct wb_req));
+	serve_rq(req->trx_fd, wb_ptr);
+
+	return NULL;
+
 }

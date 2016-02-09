@@ -28,7 +28,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "utils.h"
+//#include "utils.h"
 #include "http.h"
 
 /* prints error messages */
@@ -147,14 +147,13 @@ void get_file_stats(struct web_fl *webfile)
 }
 
 /* serve static content */
-void serve_static(int connfd, struct web_fl *webfile)
+void serve_rq(int connfd, struct web_fl *webfile)
 {
 	int filefd;
-	int counter;
+	//int counter;
 	char *addr;
-	char buff[DATLEN];
+	//char buff[DATLEN];
 
-	call_http("200", connfd, webfile);
 	
 	if ((filefd = open(webfile->file_name, O_RDONLY, 0)) < 0)
 		call_http("404", connfd, webfile);
@@ -168,6 +167,7 @@ void serve_static(int connfd, struct web_fl *webfile)
 	if (close(filefd) < 0)
 		error_msg("error closing filefd");
 	
+	call_http("200", connfd, webfile);
 	send_msg(connfd, addr);
 
 	if (munmap(addr, webfile->file_size) < 0)

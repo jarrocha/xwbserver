@@ -35,6 +35,7 @@ struct web_fl {
 };
 
 struct wb_req {
+	int trx_fd;
 	char method[FILEDAT];
 	char uri[FILEDAT];
 	char ver[FILEDAT];
@@ -47,7 +48,7 @@ void error_http(int, struct web_fl *, char *, char *);
 void error_msg(const char *);
 int get_ct_type(struct web_fl *, char *);
 void get_file_stats(struct web_fl *);
-void serve_static(int, struct web_fl *);
+void serve_rq(int, struct web_fl *);
 int matches(const char *, const char *);
 void usage(char *);
 

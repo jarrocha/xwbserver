@@ -23,8 +23,6 @@
 #include "utils.h"
 #include "http.h"
 
-//void http_404(int, struct web_fl *);
-//void http_200(int, struct web_fl *);
 
 struct http_codes {
 	char *code;
@@ -32,6 +30,8 @@ struct http_codes {
 } hcodes[] = {
 	{ "200", http_200},
 	{ "404", http_404},
+	{ "500", http_500},
+	{ "501", http_501},
 	{ 0 }
 };
 
@@ -53,6 +53,26 @@ void http_200(int fd, struct web_fl *webfile)
 	sprintf(buff, "%sServer: xWebserver\r\n", buff);
 	sprintf(buff, "%sContent-length:%d\r\n", buff, webfile->file_size);
 	sprintf(buff, "%sContent-type:%s\r\n\r\n", buff, webfile->file_type);
+    
+	send_msg(fd, buff);
+}
+
+void http_500(int fd, struct web_fl *webfile)
+{
+	char buff[DATLEN];
+
+	sprintf(buff, "HTTP/1.0 500 INTERNAL SERVER ERROR\r\n");
+	sprintf(buff, "%sServer: xWebserver\r\n", buff);
+    
+	send_msg(fd, buff);
+}
+
+void http_501(int fd, struct web_fl *webfile)
+{
+	char buff[DATLEN];
+
+	sprintf(buff, "HTTP/1.0 501 NOT IMPLEMENTED\r\n");
+	sprintf(buff, "%sServer: xWebserver\r\n", buff);
     
 	send_msg(fd, buff);
 }
