@@ -10,8 +10,9 @@ Current Features:
 - GET method only for the moment
 - basic error handling
 
-Future Features:
-- support for dynamic content
-- handle better permissions
-- support for more HTTP methods.
+Enhancements:
+   - add better thread handling
+   - support for dynamic content
+   - handle better permissions
+   - support for more HTTP methods.
 
