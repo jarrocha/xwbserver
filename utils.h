@@ -22,6 +22,17 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
+#include <stdlib.h>
+#include <sys/mman.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 #define LISTENQ 5
 #define DATLEN 8192
 #define FILEDAT 256
@@ -44,7 +55,6 @@ struct wb_req {
 
 ssize_t recv_msg(int, char *, size_t);
 size_t send_msg(int, char *);
-void error_http(int, struct web_fl *, char *, char *);
 void error_msg(const char *);
 int get_ct_type(struct web_fl *, char *);
 void get_file_stats(struct web_fl *);

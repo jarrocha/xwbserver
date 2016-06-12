@@ -17,16 +17,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//#ifndef _UTILS_H_
-//#define _UTILS_H_
+#ifndef _HTTP_H_
+#define _HTTP_H_
 
 #include "utils.h"
 
-void call_http(char *, int, struct web_fl *);
-void http_200(int, struct web_fl *);
-void http_404(int, struct web_fl *);
-void http_500(int, struct web_fl *);
-void http_501(int, struct web_fl *);
-int test_method(struct wb_req *);
+void call_http(char *, int, struct web_fl *);                                   
 
-//#endif
+#endif

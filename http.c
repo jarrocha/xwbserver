@@ -17,16 +17,17 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include "utils.h"
 #include "http.h"
 
+static void http_200(int, struct web_fl *);
+static void http_404(int, struct web_fl *);
+static void http_500(int, struct web_fl *);
+static void http_501(int, struct web_fl *);
+//static int test_method(struct wb_req *);
 
-struct http_codes {
-	char *code;
-	void (*func)(int, struct web_fl *);
+static struct http_codes {                                                      
+        char *code;                                                             
+        void (*func)(int, struct web_fl *);                                     
 } hcodes[] = {
 	{ "200", http_200},
 	{ "404", http_404},
@@ -34,6 +35,7 @@ struct http_codes {
 	{ "501", http_501},
 	{ 0 }
 };
+
 
 void call_http(char *call, int fd, struct web_fl *webfile)
 {
@@ -45,7 +47,7 @@ void call_http(char *call, int fd, struct web_fl *webfile)
 	}
 }
 
-void http_200(int fd, struct web_fl *webfile)
+static void http_200(int fd, struct web_fl *webfile)
 {
 	char buff[DATLEN];
 
@@ -57,7 +59,7 @@ void http_200(int fd, struct web_fl *webfile)
 	send_msg(fd, buff);
 }
 
-void http_500(int fd, struct web_fl *webfile)
+static void http_500(int fd, struct web_fl *webfile)
 {
 	char buff[DATLEN];
 
@@ -67,7 +69,7 @@ void http_500(int fd, struct web_fl *webfile)
 	send_msg(fd, buff);
 }
 
-void http_501(int fd, struct web_fl *webfile)
+static void http_501(int fd, struct web_fl *webfile)
 {
 	char buff[DATLEN];
 
@@ -77,7 +79,7 @@ void http_501(int fd, struct web_fl *webfile)
 	send_msg(fd, buff);
 }
 
-void http_404(int fd, struct web_fl *webfile)
+static void http_404(int fd, struct web_fl *webfile)
 {
 	char buff[DATLEN];
 
@@ -89,8 +91,8 @@ void http_404(int fd, struct web_fl *webfile)
     
 	send_msg(fd, buff);
 }
-
-int test_method(struct wb_req *request)
+/*
+static int test_method(struct wb_req *request)
 {
 	char *method[] = { "GET" };
 
@@ -101,4 +103,4 @@ int test_method(struct wb_req *request)
 			return 0;
 	}
 	return -1;
-}
+}*/
