@@ -31,3 +31,10 @@ xwbserver
 
 # Debug files
 *.dSYM/
+
+#cscope
+*.files
+tags
+
+#other sources
+src_other/
