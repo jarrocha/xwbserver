@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 	struct sockaddr_in svaddr, claddr;
 	socklen_t sin_size = sizeof(claddr);
 
-	/* pthread variables */
+	/* thread id */
 	pthread_t tid;
 
 	/* variables to handle http process */
@@ -122,7 +122,7 @@ void *thr_func(void *arg)
 
 	req = malloc(sizeof(struct wb_req));
 	memcpy(req, arg, sizeof(struct wb_req));
-	serve_rq(req->trx_fd, wb_ptr);
+	serve_rq(req, wb_ptr);
 
 	return NULL;
 

@@ -136,16 +136,14 @@ void get_file_stats(struct web_fl *webfile)
 }
 
 /* serve static content */
-void serve_rq(int connfd, struct web_fl *webfile)
+void serve_rq(struct wb_req *wb_trx, struct web_fl *webfile)
 {
 	int filefd;
-	//int counter;
 	char *addr;
-	//char buff[DATLEN];
 
 	
 	if ((filefd = open(webfile->file_name, O_RDONLY, 0)) < 0)
-		call_http("404", connfd, webfile);
+		call_http("404", wb_trx->trx_fd, webfile);
 	/* get file stats */
 	get_file_stats(webfile);
 		
@@ -156,11 +154,13 @@ void serve_rq(int connfd, struct web_fl *webfile)
 	if (close(filefd) < 0)
 		error_msg("error closing filefd");
 	
-	call_http("200", connfd, webfile);
-	send_msg(connfd, addr);
+	call_http("200", wb_trx->trx_fd, webfile);
+	send_msg(wb_trx->trx_fd, addr);
 
 	if (munmap(addr, webfile->file_size) < 0)
 		error_msg("munmap() error");
+	/* freeing web transaction */
+	free(wb_trx);
 }
 
 /* usage function */
