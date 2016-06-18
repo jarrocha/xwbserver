@@ -19,15 +19,15 @@
 
 #include "http.h"
 
-static void http_200(int, struct web_fl *);
-static void http_404(int, struct web_fl *);
-static void http_500(int, struct web_fl *);
-static void http_501(int, struct web_fl *);
+static void http_200(int, struct st_trx *);
+static void http_404(int, struct st_trx *);
+static void http_500(int, struct st_trx *);
+static void http_501(int, struct st_trx *);
 //static int test_method(struct wb_req *);
 
 static struct http_codes {                                                      
         char *code;                                                             
-        void (*func)(int, struct web_fl *);                                     
+        void (*func)(int, struct st_trx *);                                     
 } hcodes[] = {
 	{ "200", http_200},
 	{ "404", http_404},
@@ -37,29 +37,29 @@ static struct http_codes {
 };
 
 
-void call_http(char *call, int fd, struct web_fl *webfile)
+void call_http(char *call, int fd, struct st_trx *wb_trx)
 {
 	struct http_codes *hc;
 
 	for (hc = hcodes; hc->code; hc++) {
 		if (matches(call, hc->code) == 0)
-			hc->func(fd, webfile);
+			hc->func(fd, wb_trx);
 	}
 }
 
-static void http_200(int fd, struct web_fl *webfile)
+static void http_200(int fd, struct st_trx *wb_trx)
 {
 	char buff[DATLEN];
 
 	sprintf(buff, "HTTP/1.0 200 OK\r\n");
 	sprintf(buff, "%sServer: xWebserver\r\n", buff);
-	sprintf(buff, "%sContent-length:%d\r\n", buff, webfile->file_size);
-	sprintf(buff, "%sContent-type:%s\r\n\r\n", buff, webfile->file_type);
+	sprintf(buff, "%sContent-length:%d\r\n", buff, wb_trx->file_size);
+	sprintf(buff, "%sContent-type:%s\r\n\r\n", buff, wb_trx->file_type);
     
 	send_msg(fd, buff);
 }
 
-static void http_500(int fd, struct web_fl *webfile)
+static void http_500(int fd, struct st_trx *wb_trx)
 {
 	char buff[DATLEN];
 
@@ -69,7 +69,7 @@ static void http_500(int fd, struct web_fl *webfile)
 	send_msg(fd, buff);
 }
 
-static void http_501(int fd, struct web_fl *webfile)
+static void http_501(int fd, struct st_trx *wb_trx)
 {
 	char buff[DATLEN];
 
@@ -79,7 +79,7 @@ static void http_501(int fd, struct web_fl *webfile)
 	send_msg(fd, buff);
 }
 
-static void http_404(int fd, struct web_fl *webfile)
+static void http_404(int fd, struct st_trx *wb_trx)
 {
 	char buff[DATLEN];
 

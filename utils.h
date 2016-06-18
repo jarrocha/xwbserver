@@ -37,28 +37,25 @@
 #define DATLEN 8192
 #define FILEDAT 256
 
-struct web_fl {
+struct st_trx {
+	int trx_fd;
 	int file_size;
 	int stat_ct;
 	int dyn_ct;
-	char file_type[FILEDAT];
-	char file_name[FILEDAT];
-};
-
-struct wb_req {
-	int trx_fd;
 	char method[FILEDAT];
 	char uri[FILEDAT];
 	char ver[FILEDAT];
+	char file_type[FILEDAT];
+	char file_name[FILEDAT];
 };
 
 
 ssize_t recv_msg(int, char *, size_t);
 size_t send_msg(int, char *);
 void error_msg(const char *);
-int get_ct_type(struct web_fl *, char *);
-void get_file_stats(struct web_fl *);
-void serve_rq(struct wb_req *, struct web_fl *);
+int get_ct_type(struct st_trx *, char *);
+void get_file_stats(struct st_trx *);
+void serve_rq(struct st_trx *);
 int matches(const char *, const char *);
 void usage(char *);
 

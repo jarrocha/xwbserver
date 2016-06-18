@@ -97,17 +97,17 @@ int matches(const char* cmd, const char* pattern)
 }
 
 /* get content type: dynamic or static */
-int get_ct_type(struct web_fl *webfile, char *uri)
+int get_ct_type(struct st_trx *wb_trx, char *uri)
 {
 	if(!strstr(uri, "cgi-bin")) {
 		if (uri[strlen(uri) - 1] == '/') {
-			webfile->stat_ct = 1;			
-			webfile->dyn_ct = 0;
+			wb_trx->stat_ct = 1;			
+			wb_trx->dyn_ct = 0;
 			return(EXIT_SUCCESS);			
 		}
 	} else {
-		webfile->stat_ct = 0;			
-		webfile->dyn_ct = 1;
+		wb_trx->stat_ct = 0;			
+		wb_trx->dyn_ct = 1;
 		return(EXIT_SUCCESS);			
 	}
 
@@ -115,49 +115,51 @@ int get_ct_type(struct web_fl *webfile, char *uri)
 }
 
 /* get file stats */
-void get_file_stats(struct web_fl *webfile)
+void get_file_stats(struct st_trx *wb_trx)
 {
 	struct stat filestat;
 
-	if (stat(webfile->file_name, &filestat) < 0) {
-		printf("File: %s\n", webfile->file_name);
+	if (stat(wb_trx->uri, &filestat) < 0) {
+		printf("File: %s\n", wb_trx->uri);
 		error_msg("error on stat()");
 	} else
-		webfile->file_size = filestat.st_size;
+		wb_trx->file_size = filestat.st_size;
 
-	if (strstr(webfile->file_name, ".html"))
-		strcpy(webfile->file_type, "text/html");
-	else if (strstr(webfile->file_name, ".gif"))
-		strcpy(webfile->file_type, "image/gif");
-	else if (strstr(webfile->file_name, ".jpg"))
-		strcpy(webfile->file_type, "image/jpeg");
+	if (strstr(wb_trx->uri, ".html"))
+		strcpy(wb_trx->file_type, "text/html");
+	else if (strstr(wb_trx->uri, ".gif"))
+		strcpy(wb_trx->file_type, "image/gif");
+	else if (strstr(wb_trx->uri, ".jpg"))
+		strcpy(wb_trx->file_type, "image/jpeg");
 	else
-		strcpy(webfile->file_type, "text/plain");
+		strcpy(wb_trx->file_type, "text/plain");
 }
 
 /* serve static content */
-void serve_rq(struct wb_req *wb_trx, struct web_fl *webfile)
+void serve_rq(struct st_trx *wb_trx)
 {
 	int filefd;
 	char *addr;
 
 	
-	if ((filefd = open(webfile->file_name, O_RDONLY, 0)) < 0)
-		call_http("404", wb_trx->trx_fd, webfile);
+	//if ((filefd = open(wb_trx->file_name, O_RDONLY, 0)) < 0)
+	if ((filefd = open(wb_trx->uri, O_RDONLY, 0)) < 0)
+		call_http("404", wb_trx->trx_fd, wb_trx);
 	/* get file stats */
-	get_file_stats(webfile);
+	//get_file_stats(wb_trx);
+	get_file_stats(wb_trx);
 		
-	if ((addr = mmap(0, webfile->file_size, PROT_READ, MAP_PRIVATE, 
+	if ((addr = mmap(0, wb_trx->file_size, PROT_READ, MAP_PRIVATE, 
 				filefd, 0)) == ((void *) -1))
 		error_msg("error on mmap()");
 	
 	if (close(filefd) < 0)
 		error_msg("error closing filefd");
 	
-	call_http("200", wb_trx->trx_fd, webfile);
+	call_http("200", wb_trx->trx_fd, wb_trx);
 	send_msg(wb_trx->trx_fd, addr);
 
-	if (munmap(addr, webfile->file_size) < 0)
+	if (munmap(addr, wb_trx->file_size) < 0)
 		error_msg("munmap() error");
 	/* freeing web transaction */
 	free(wb_trx);

@@ -22,6 +22,6 @@
 
 #include "utils.h"
 
-void call_http(char *, int, struct web_fl *);                                   
+void call_http(char *, int, struct st_trx *);                                   
 
 #endif
