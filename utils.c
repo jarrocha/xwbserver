@@ -118,18 +118,24 @@ int get_ct_type(struct st_trx *wb_trx, char *uri)
 void get_file_stats(struct st_trx *wb_trx)
 {
 	struct stat filestat;
-
-	if (stat(wb_trx->uri, &filestat) < 0) {
+	
+	if (matches(wb_trx->uri,"/") == 0)
+		strcat(wb_trx->file_name, "index.html");
+	
+	if ((wb_trx->file_fd = open(wb_trx->file_name, O_RDONLY, 0)) < 0)
+		call_http("404", wb_trx->trx_fd, wb_trx);
+	
+	if (stat(wb_trx->file_name, &filestat) < 0) {
 		printf("File: %s\n", wb_trx->uri);
 		error_msg("error on stat()");
 	} else
 		wb_trx->file_size = filestat.st_size;
 
-	if (strstr(wb_trx->uri, ".html"))
+	if (strstr(wb_trx->file_name, ".html"))
 		strcpy(wb_trx->file_type, "text/html");
-	else if (strstr(wb_trx->uri, ".gif"))
+	else if (strstr(wb_trx->file_name, ".gif"))
 		strcpy(wb_trx->file_type, "image/gif");
-	else if (strstr(wb_trx->uri, ".jpg"))
+	else if (strstr(wb_trx->file_name, ".jpg"))
 		strcpy(wb_trx->file_type, "image/jpeg");
 	else
 		strcpy(wb_trx->file_type, "text/plain");
@@ -138,22 +144,16 @@ void get_file_stats(struct st_trx *wb_trx)
 /* serve static content */
 void serve_rq(struct st_trx *wb_trx)
 {
-	int filefd;
 	char *addr;
-
 	
-	//if ((filefd = open(wb_trx->file_name, O_RDONLY, 0)) < 0)
-	if ((filefd = open(wb_trx->uri, O_RDONLY, 0)) < 0)
-		call_http("404", wb_trx->trx_fd, wb_trx);
 	/* get file stats */
-	//get_file_stats(wb_trx);
 	get_file_stats(wb_trx);
 		
 	if ((addr = mmap(0, wb_trx->file_size, PROT_READ, MAP_PRIVATE, 
-				filefd, 0)) == ((void *) -1))
+			 wb_trx->file_fd, 0)) == ((void *) -1))
 		error_msg("error on mmap()");
 	
-	if (close(filefd) < 0)
+	if (close(wb_trx->file_fd) < 0)
 		error_msg("error closing filefd");
 	
 	call_http("200", wb_trx->trx_fd, wb_trx);

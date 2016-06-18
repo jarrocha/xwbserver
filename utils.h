@@ -40,6 +40,7 @@
 struct st_trx {
 	int trx_fd;
 	int file_size;
+	int file_fd;
 	int stat_ct;
 	int dyn_ct;
 	char method[FILEDAT];
