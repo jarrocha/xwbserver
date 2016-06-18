@@ -87,7 +87,8 @@ static void http_404(int fd, struct st_trx *wb_trx)
 	sprintf(buff, "%sServer: xWebserver\r\n\r\n", buff);
 	sprintf(buff, "%s<html><head><title>404 Not Found</title></head>"
 		,buff);
-	sprintf(buff, "%s<body><h1>URL not found</h1></body></html>\r\n", buff);
+	sprintf(buff, "%s<body><h1>404 File Not found</h1></body></html>\r\n", 
+		buff);
     
 	send_msg(fd, buff);
 }

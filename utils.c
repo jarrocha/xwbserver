@@ -20,11 +20,17 @@
 #include "utils.h"
 #include "http.h"
 
-/* prints error messages */
+/* exit error messages */
 void error_msg(const char *msg)
 {
 	fprintf(stderr, "%s: %s\n", msg, strerror(errno));
 	exit(EXIT_FAILURE);
+}
+
+/* recoverable error messages */
+void error_msg(const char *msg)
+{
+	fprintf(stderr, "%s: %s\n", msg, strerror(errno));
 }
 
 /* receive msg function */
@@ -117,28 +123,33 @@ int get_ct_type(struct st_trx *wb_trx, char *uri)
 /* get file stats */
 void get_file_stats(struct st_trx *wb_trx)
 {
+	struct st_trx *ptrx = wb_trx;
 	struct stat filestat;
 	
-	if (matches(wb_trx->uri,"/") == 0)
-		strcat(wb_trx->file_name, "index.html");
+	if (matches(ptrx->uri,"/") == 0)
+		strcat(ptrx->file_name, "/index.html");
+	else
+		strcat(ptrx->file_name, ptrx->uri);
+		
+	printf("Filename: %s\n", ptrx->file_name);
 	
-	if ((wb_trx->file_fd = open(wb_trx->file_name, O_RDONLY, 0)) < 0)
-		call_http("404", wb_trx->trx_fd, wb_trx);
+	if ((ptrx->file_fd = open(ptrx->file_name, O_RDONLY, 0)) < 0)
+		call_http("404", ptrx->trx_fd, ptrx);
 	
-	if (stat(wb_trx->file_name, &filestat) < 0) {
-		printf("File: %s\n", wb_trx->uri);
+	if (stat(ptrx->file_name, &filestat) < 0) {
+		printf("File: %s\n", ptrx->uri);
 		error_msg("error on stat()");
 	} else
-		wb_trx->file_size = filestat.st_size;
+		ptrx->file_size = filestat.st_size;
 
-	if (strstr(wb_trx->file_name, ".html"))
-		strcpy(wb_trx->file_type, "text/html");
-	else if (strstr(wb_trx->file_name, ".gif"))
-		strcpy(wb_trx->file_type, "image/gif");
-	else if (strstr(wb_trx->file_name, ".jpg"))
-		strcpy(wb_trx->file_type, "image/jpeg");
+	if (strstr(ptrx->file_name, ".html"))
+		strcpy(ptrx->file_type, "text/html");
+	else if (strstr(ptrx->file_name, ".gif"))
+		strcpy(ptrx->file_type, "image/gif");
+	else if (strstr(ptrx->file_name, ".jpg"))
+		strcpy(ptrx->file_type, "image/jpeg");
 	else
-		strcpy(wb_trx->file_type, "text/plain");
+		strcpy(ptrx->file_type, "text/plain");
 }
 
 /* serve static content */
