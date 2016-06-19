@@ -20,6 +20,10 @@
 #include "utils.h"
 #include "http.h"
 
+/* prototypes */
+static void thr_term(struct st_trx *);
+static void get_file_stats(struct st_trx *);
+
 /* exit error messages */
 void error_msg(const char *msg)
 {
@@ -28,7 +32,7 @@ void error_msg(const char *msg)
 }
 
 /* recoverable error messages */
-void error_msg(const char *msg)
+void client_msg(const char *msg)
 {
 	fprintf(stderr, "%s: %s\n", msg, strerror(errno));
 }
@@ -121,7 +125,7 @@ int get_ct_type(struct st_trx *wb_trx, char *uri)
 }
 
 /* get file stats */
-void get_file_stats(struct st_trx *wb_trx)
+static void get_file_stats(struct st_trx *wb_trx)
 {
 	struct st_trx *ptrx = wb_trx;
 	struct stat filestat;
@@ -133,23 +137,26 @@ void get_file_stats(struct st_trx *wb_trx)
 		
 	printf("Filename: %s\n", ptrx->file_name);
 	
-	if ((ptrx->file_fd = open(ptrx->file_name, O_RDONLY, 0)) < 0)
+	if ((ptrx->file_fd = open(ptrx->file_name, O_RDONLY, 0)) < 0) {
+		printf("File not found\n");
 		call_http("404", ptrx->trx_fd, ptrx);
-	
-	if (stat(ptrx->file_name, &filestat) < 0) {
-		printf("File: %s\n", ptrx->uri);
-		error_msg("error on stat()");
-	} else
-		ptrx->file_size = filestat.st_size;
+		thr_term(ptrx);
+	} else {
+		if (stat(ptrx->file_name, &filestat) < 0) {
+			printf("File: %s\n", ptrx->uri);
+			error_msg("error on stat()");
+		} else
+			ptrx->file_size = filestat.st_size;
 
-	if (strstr(ptrx->file_name, ".html"))
-		strcpy(ptrx->file_type, "text/html");
-	else if (strstr(ptrx->file_name, ".gif"))
-		strcpy(ptrx->file_type, "image/gif");
-	else if (strstr(ptrx->file_name, ".jpg"))
-		strcpy(ptrx->file_type, "image/jpeg");
-	else
-		strcpy(ptrx->file_type, "text/plain");
+		if (strstr(ptrx->file_name, ".html"))
+			strcpy(ptrx->file_type, "text/html");
+		else if (strstr(ptrx->file_name, ".gif"))
+			strcpy(ptrx->file_type, "image/gif");
+		else if (strstr(ptrx->file_name, ".jpg"))
+			strcpy(ptrx->file_type, "image/jpeg");
+		else
+			strcpy(ptrx->file_type, "text/plain");
+	}
 }
 
 /* serve static content */
@@ -176,9 +183,18 @@ void serve_rq(struct st_trx *wb_trx)
 	free(wb_trx);
 }
 
+/* thread terminating function */
+static void thr_term(struct st_trx *ptrx)
+{
+	void *val = NULL;
+
+	free(ptrx);
+	pthread_exit(val);		
+}
+
 /* usage function */
 void usage(char *argv)
 {
-	printf("Usage: %s [PORT] [INDEX PAGE]\n", argv);
+	printf("Usage: %s [PORT] [DIRECTORY]\n", argv);
 	exit(EXIT_SUCCESS);
 }

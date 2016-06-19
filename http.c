@@ -19,6 +19,7 @@
 
 #include "http.h"
 
+/* prototypes */ 
 static void http_200(int, struct st_trx *);
 static void http_404(int, struct st_trx *);
 static void http_500(int, struct st_trx *);

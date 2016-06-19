@@ -23,6 +23,7 @@
 #define _UTILS_H_
 
 #include <stdio.h>
+#include <pthread.h>
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
@@ -55,7 +56,6 @@ ssize_t recv_msg(int, char *, size_t);
 size_t send_msg(int, char *);
 void error_msg(const char *);
 int get_ct_type(struct st_trx *, char *);
-void get_file_stats(struct st_trx *);
 void serve_rq(struct st_trx *);
 int matches(const char *, const char *);
 void usage(char *);
