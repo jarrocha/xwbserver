@@ -1,0 +1,16 @@
+<HTML>
+<HEAD><TITLE>Elements: Collecting</TITLE>
+<SCRIPT LANGUAGE="JScript">
+function showElements() {
+    var tag_names = "";
+    for (i=0; i<document.all.length; i++)
+        tag_names = tag_names + document.all(i).tagName + " ";
+    alert("This document contains: " + tag_names);
+}
+</SCRIPT>
+</HEAD>
+<BODY onload="showElements()">
+<H1>Welcome!</H1>
+<P>This document is <B>very</B> short.
+</BODY>
+</HTML>
