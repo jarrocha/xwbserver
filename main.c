@@ -48,8 +48,7 @@ int main(int argc, char **argv)
 
 	/* variables to handle http process */
 	char buff[DATLEN];
-	struct st_trx wb_trx;
-	//wb_ptr = &wb_trx;
+	struct st_trx *wb_trx;
 	
 	/* zeroing structs */
 	memset(&svaddr, 0, sizeof(svaddr));
@@ -59,11 +58,6 @@ int main(int argc, char **argv)
 	if (argc != 3)
 		usage(argv[0]);
 	port = atoi(argv[1]);
-
-	/* initialize web file struct */
-	strcpy(wb_trx.file_name, argv[2]);
-	wb_trx.stat_ct = 0;
-	wb_trx.dyn_ct = 0;
 	
 	/* initializing server address socket */
 	svaddr.sin_family = AF_INET;
@@ -88,7 +82,14 @@ int main(int argc, char **argv)
 	
 	/* main procedure */
 	while(1) {
-		if ((wb_trx.trx_fd = accept(listenfd,
+		wb_trx = malloc((sizeof(struct st_trx)));	
+		
+		/* initialize web file struct */
+		strcpy(wb_trx->file_name, argv[2]);
+		wb_trx->stat_ct = 0;
+		wb_trx->dyn_ct = 0;
+		
+		if ((wb_trx->trx_fd = accept(listenfd,
 					    (struct sockaddr *) &claddr,
 					    &sin_size)) < 0)
 			error_msg("error on accept()");
@@ -98,13 +99,14 @@ int main(int argc, char **argv)
 				ntohs(claddr.sin_port));
 		
 		/* Read request line and headers */
-		recv_msg(wb_trx.trx_fd, buff, DATLEN);
+		recv_msg(wb_trx->trx_fd, buff, DATLEN);
 
-		sscanf(buff, "%s %s %s", wb_trx.method, wb_trx.uri, wb_trx.ver);
-		printf("method: %s\nuri: %s\nver: %s\n\n", wb_trx.method, 
-		       wb_trx.uri, wb_trx.ver);
+		sscanf(buff, "%s %s %s", wb_trx->method, wb_trx->uri,
+		       wb_trx->ver);
+		printf("method: %s\nuri: %s\nver: %s\n\n", wb_trx->method, 
+		       wb_trx->uri, wb_trx->ver);
 		
-		if (pthread_create(&tid, NULL, thr_func, (void *) &wb_trx) != 0)
+		if (pthread_create(&tid, NULL, thr_func, (void *) wb_trx) != 0)
 			error_msg("Thread create error");
 		if (pthread_detach(tid) != 0)
 			error_msg("Thread detach error");
@@ -118,12 +120,8 @@ int main(int argc, char **argv)
 void *thr_func(void *arg)
 {
 	
-	struct st_trx *req;
-	
-	req = malloc(sizeof(struct st_trx));
-	memcpy(req, (struct st_trx *) arg, sizeof(struct st_trx));
-	serve_rq(req);
+	serve_rq((struct st_trx *) arg);
 
-	return NULL;
+	return(EXIT_SUCCESS);
 
 }
