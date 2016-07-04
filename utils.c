@@ -195,6 +195,6 @@ static void thr_term(struct st_trx *ptrx)
 /* usage function */
 void usage(char *argv)
 {
-	printf("Usage: %s [PORT] [DIRECTORY]\n", argv);
+	printf("Usage: %s <PORT> <DIRECTORY> <#THREADS>\n", argv);
 	exit(EXIT_SUCCESS);
 }
