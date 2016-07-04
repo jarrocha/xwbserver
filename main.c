@@ -30,7 +30,7 @@
 #include "http.h"
 
 /* global */
-struct st_trx *wb_ptr;
+//struct st_trx *wb_ptr;
 
 /* pthread functions */
 void *thr_func(void *arg);
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 	/* variables to handle http process */
 	char buff[DATLEN];
 	struct st_trx wb_trx;
-	wb_ptr = &wb_trx;
+	//wb_ptr = &wb_trx;
 	
 	/* zeroing structs */
 	memset(&svaddr, 0, sizeof(svaddr));
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 		printf("method: %s\nuri: %s\nver: %s\n\n", wb_trx.method, 
 		       wb_trx.uri, wb_trx.ver);
 		
-		if (pthread_create(&tid, NULL, thr_func, NULL) != 0)
+		if (pthread_create(&tid, NULL, thr_func, (void *) &wb_trx) != 0)
 			error_msg("Thread create error");
 		if (pthread_detach(tid) != 0)
 			error_msg("Thread detach error");
@@ -119,9 +119,9 @@ void *thr_func(void *arg)
 {
 	
 	struct st_trx *req;
-
+	
 	req = malloc(sizeof(struct st_trx));
-	memcpy(req, wb_ptr, sizeof(struct st_trx));
+	memcpy(req, (struct st_trx *) arg, sizeof(struct st_trx));
 	serve_rq(req);
 
 	return NULL;
