@@ -38,16 +38,11 @@ void client_msg(const char *msg)
 }
 
 /* receive msg function */
-ssize_t recv_msg(int fd, char *usr_buff, size_t nbytes)
+size_t recv_msg(int fd, char *usr_buff, size_t nbytes)
 {
 	size_t nleft = nbytes;
-	ssize_t nrecv;
+	size_t nrecv;
 	char *recv_buff = usr_buff;
-	/*
-	char EOL[3] = "\r\n";
-	size_t eol_len = strlen(EOL);
-	int eol_matched;
-	*/
 
 	while (nleft > 0) {
 		if ((nrecv = recv(fd, recv_buff, nleft, 0)) < 0) {
@@ -57,14 +52,6 @@ ssize_t recv_msg(int fd, char *usr_buff, size_t nbytes)
 				error_msg("recv() error");
 		} else if ((nrecv == 0 ) || strstr(recv_buff, "\r\n"))
 			break;
-		/* search for EOL at the last two bytes 
-		for (int i = nrecv - 2; i <= nrecv; i++) {
-			if ( *(recv_buff + i) == EOL[eol_matched])
-				eol_matched++;
-			if (eol_matched == eol_len)
-				*(recv_buff + 1 - eol_len) = '\0';
-		}
-		*/
 		nleft -= nrecv;
 		recv_buff += nrecv;
 	}
@@ -137,7 +124,7 @@ static void get_file_stats(struct st_trx *wb_trx)
 		
 	printf("Filename: %s\n", ptrx->file_name);
 	
-	if ((ptrx->file_fd = open(ptrx->file_name, O_RDONLY, 0)) < 0) {
+	if ((ptrx->file_fd = open(ptrx->file_name, O_RDONLY|O_NONBLOCK, 0)) < 0) {
 		printf("File not found\n");
 		call_http("404", ptrx->trx_fd, ptrx);
 		thr_term(ptrx);

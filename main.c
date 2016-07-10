@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 	svaddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	svaddr.sin_port = htons((unsigned short) port);
 	
-	/* defining listening socket descriptor */
+	/* listening socket descriptor */
 	if ((listenfd = socket(svaddr.sin_family, SOCK_STREAM, 0)) < 0 )
 		error_msg("error on socket()");
 	if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &optval, 

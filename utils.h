@@ -53,7 +53,7 @@ struct st_trx {
 };
 
 
-ssize_t recv_msg(int, char *, size_t);
+size_t recv_msg(int, char *, size_t);
 size_t send_msg(int, char *);
 void error_msg(const char *);
 int get_ct_type(struct st_trx *, char *);
