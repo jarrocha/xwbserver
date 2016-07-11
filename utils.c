@@ -41,7 +41,7 @@ void client_msg(const char *msg)
 size_t recv_msg(int fd, char *usr_buff, size_t nbytes)
 {
 	size_t nleft = nbytes;
-	size_t nrecv;
+	ssize_t nrecv;
 	char *recv_buff = usr_buff;
 
 	while (nleft > 0) {
@@ -124,7 +124,8 @@ static void get_file_stats(struct st_trx *wb_trx)
 		
 	printf("Filename: %s\n", ptrx->file_name);
 	
-	if ((ptrx->file_fd = open(ptrx->file_name, O_RDONLY|O_NONBLOCK, 0)) < 0) {
+	if ((ptrx->file_fd = open(ptrx->file_name, O_RDONLY|O_NONBLOCK, 0)) 
+								< 0) {
 		printf("File not found\n");
 		call_http("404", ptrx->trx_fd, ptrx);
 		thr_term(ptrx);
